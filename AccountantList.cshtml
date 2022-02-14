@@ -1,0 +1,90 @@
+﻿
+@{
+    ViewBag.Title = "Add Party";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .thumbnail.well.mythumb {
+        padding: 0;
+    }
+</style>
+<section class="content-header">
+    <h1>Accountant List</h1>
+</section>
+
+<section class="content">
+    <div class="box box-purple">
+
+        <div class="box-body">
+            <div class="row">
+                <div class="col-md-6 form-group">
+                    @*@Html.ActionLink("Add New", "AddReseller", null, new { @class = "btn btn-danger" })*@
+                </div>
+                <div class="col-md-12 form-group">
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <input type="text" id="txtMobile"onkeyup="search()" placeholder="Mobile" class="form-group form-control userbyMobileNo"  pattern="[0-9]{0,10}" />
+                        </div>
+                        <div class="col-sm-3">
+                            <input type="text" id="txtName"onkeyup="search()" placeholder="Name" class="form-control form-group" maxlength="20" />
+                        </div>
+                        @*<div class="col-sm-4">
+                            <input type="text" id="txtShopName" placeholder="Company Name" class="form-control form-group" />
+                        </div>*@
+                        @*<div class="col-sm-2">
+                            <input type="button" class="btn btn-success" value="Search" id="btn_search form-group" onclick="search()" />
+                        </div>*@
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+        <div id="ajaxgrid"></div>
+        <div class="clearfix"></div>
+    </div>
+</section>
+
+@section Scripts{
+
+    <script src="~/plugins/ajaxgrid/AjaxGrid.js"></script>
+    <script>
+        @*var role= @ViewBag.role;
+        var parent= @ViewBag.parent;*@
+        var tbl = new DataTable('ajaxgrid');
+        tbl.accessUrl = '/Admin/AccountantGrid'; //Url.Action("ResellerGridForDist", "User")';
+        tbl.searchParameters = [];
+        @*tbl.searchParameters.push({ Key: "role", value: role });
+        tbl.searchParameters.push({ Key: "parent", value: parent });
+        tbl.searchParameters.push({ Key: "direct", value: @ViewBag.IsDirect })*@
+        tbl.bindEvents();
+        tbl.asynList();
+
+
+        function search() {
+            debugger;
+            var mobile = $("#txtMobile").val();
+            var name = $('#txtName').val();
+            //var shopname = $('#txtShopName').val();
+            tbl.searchParameters = [];
+            if (mobile != '' && typeof mobile != 'undefined') {
+                tbl.searchParameters.push({ Key: "mobile", value: mobile })
+            }
+            if (name != '' && typeof name != 'undefined') {
+                tbl.searchParameters.push({ Key: "name", value: name })
+            }
+            //if (shopname != '' && typeof shopname != 'undefined') {
+            //    tbl.searchParameters.push({ Key: "shopname", value: shopname })
+            //}
+            //tbl.searchParameters.push({ Key: "role", value: role });
+            //tbl.searchParameters.push({ Key: "parent", value: parent });
+
+            tbl.currentPageID = 1;
+            tbl.asynList();
+        }
+
+
+
+    </script>
+}
