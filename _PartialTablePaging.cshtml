@@ -1,0 +1,100 @@
+﻿@{
+    Layout = null;
+}
+@if (ViewBag.DataPagingModel != null)
+{
+    com.aadviktech.IMS.ViewModel.DataPagingModel PagingModel = (com.aadviktech.IMS.ViewModel.DataPagingModel)ViewBag.DataPagingModel;
+
+    if (PagingModel.TotalRecords > 0)
+    {
+        PagingModel.TotalPages = (PagingModel.TotalRecords / PagingModel.PageSize) + ((PagingModel.TotalRecords % PagingModel.PageSize == 0) ? 0 : 1);
+        PagingModel.StartRecord = (PagingModel.TotalRecords == 0) ? 0 : (((PagingModel.CurrentPageID - 1) * PagingModel.PageSize) + 1);
+        PagingModel.EndRecord = (PagingModel.TotalPages == PagingModel.CurrentPageID || PagingModel.TotalRecords == 0) ? PagingModel.TotalRecords : (((PagingModel.CurrentPageID - 1) * PagingModel.PageSize) + PagingModel.PageSize);
+
+        PagingModel.StartPageNumber = 1;
+        PagingModel.EndPageNumber = PagingModel.TotalPages;
+        if (PagingModel.TotalPages > 5)
+        {
+            if (PagingModel.CurrentPageID > 1)
+            {
+                PagingModel.StartPageNumber = PagingModel.CurrentPageID - 1;
+            }
+            else
+            {
+                PagingModel.StartPageNumber = PagingModel.CurrentPageID;
+            }
+            PagingModel.EndPageNumber = PagingModel.StartPageNumber + 4;
+            if (PagingModel.EndPageNumber > PagingModel.TotalPages)
+            {
+                PagingModel.EndPageNumber = PagingModel.TotalPages;
+                PagingModel.StartPageNumber = PagingModel.EndPageNumber - 4;
+            }
+        }
+
+        <div class="">
+            <div class="col-sm-6">
+                <div id="editable_info" class="dataTables_info" role="status" aria-live="polite">Showing @PagingModel.StartRecord to  @PagingModel.EndRecord of @(PagingModel.TotalRecords) entries</div>
+            </div>
+
+            <div class="col-sm-6">
+                <div id="editable_paginate" class="dataTables_paginate paging_simple_numbers">
+                    <ul class="pagination">
+                        @if (PagingModel.TotalPages > 1)
+                        {
+                            if (PagingModel.CurrentPageID == 1)
+                            {
+                                <li id="editable_previous" class="paginate_button previous disabled" aria-controls="editable" tabindex="0">
+                                    <a>Previous</a>
+                                </li>
+
+                            }
+                            else
+                            {
+                                <li id="editable_previous" class="paginate_button previous " aria-controls="editable" tabindex="0">
+                                    <a class="pageRequest" pagerequest='@(PagingModel.CurrentPageID-1)' style="cursor:pointer" tabindex="0" id="tSortable_previous">Previous</a>
+                                </li>
+
+                            }
+
+                            for (int TStart = PagingModel.StartPageNumber; TStart <= PagingModel.EndPageNumber && TStart <= PagingModel.TotalPages; TStart++)
+                            {
+                                if (TStart == PagingModel.CurrentPageID)
+                                {
+
+                                    <li class="paginate_button active" aria-controls="editable" tabindex="0">
+                                        <a href="javascript:void(0)">@TStart</a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="paginate_button " aria-controls="editable" tabindex="0">
+                                        <a class="pageRequest" pagerequest='@TStart' style="cursor:pointer;">@TStart</a>
+                                    </li>
+
+                                }
+
+                            }
+
+                            if (PagingModel.CurrentPageID == PagingModel.TotalPages)
+                            {
+                                <li id="editable_next" class="paginate_button next disabled" aria-controls="editable" tabindex="0">
+                                    <a href="javascript:void(0)">Next</a>
+                                </li>
+
+                            }
+                            else
+                            {
+                                <li id="editable_next" class="paginate_button next" aria-controls="editable" tabindex="0">
+                                    <a class="pageRequest" pagerequest='@(PagingModel.CurrentPageID+1)' style="cursor:pointer">Next</a>
+                                </li>
+                            }
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    }
+}
+
+
