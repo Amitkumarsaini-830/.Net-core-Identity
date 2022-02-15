@@ -1,0 +1,1917 @@
+﻿@model com.aadviktech.IMS.DB.Transaction
+@using com.aadviktech.IMS.DB
+@using com.aadviktech.IMS.Constant.AllEnum
+
+@{
+    ViewData["Title"] = "AddSales";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    List<MyAppUser> party = (List<MyAppUser>)ViewBag.PartyList;
+    IList<State> states = ViewBag.states;
+   // IList<Item> items = ViewBag.ItemList;
+    IList<UnitName> unit = ViewBag.Unit;
+    IList<TaxRate> taxes = ViewBag.Tax;
+    IList<string> TransactionType = ViewBag.Transaction;
+    IList<City> city = ViewBag.City;
+    MyAppUser UserInfo = ViewBag.UserInfo;
+    Invoice_no InvoiceNo = ViewBag.InvoiceNo;
+    IList<Shopes> shopes = ViewBag.Shop;
+    IList<BankAccount> banks = ViewBag.Bank;
+    IList<ExtraCharge> charges = ViewBag.ExtraCharge;
+}
+
+
+
+<div class="text-center bg-light">
+    <h3>SALES</h3>
+    @if (!string.IsNullOrEmpty(ViewBag.Message))
+    {
+        <div class="form-group alert-success text-center">@ViewBag.Message</div>
+    }
+    @if (!string.IsNullOrEmpty(ViewBag.error))
+    {
+        <div class="form-group alert-danger text-center">@ViewBag.error</div>
+    }
+</div>
+
+<form asp-action="AddSales" ng-app="" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-md-3 p-0">
+            <div class="m-0 row my-1">
+                <div class="col-3">
+                    <span class="lbl">Invoice_No:</span>
+                </div>
+                <div class="col-9">
+                    <div class="input-group">
+                        <input type="text" class="form-control border-right-0 " asp-for="Order_Invoice_NoPrifix" id="Order_Invoice_No1" readonly />
+                        <select asp-items="@(new SelectList(shopes,"LableForInvoice","LableForInvoice"))" onchange="GetInvoiceNo()" id="ShopeName" class="form-control border-left-0 border-right-0">
+                        </select>
+                        <input name="Order_Invoice_No" asp-for="Order_Invoice_No" id="Order_Invoice_No" type="text" class=" border-left-0 form-control" required />
+                    </div>
+                </div>
+            </div>
+
+            <div class="m-0 row my-1 ">
+                <div class="col-3">
+                    <span class="lbl">InVoceDate:</span>
+                </div>
+                <div class="col-9">
+                    <input type="text" asp-for="Invoice_Date" name="Invoice_Date" id="Invoice_Date" class="w-100 form-control datepicker" required />
+                </div>
+            </div>
+
+        </div>
+        <div class="col-md-3 p-0">
+            <div class="m-0 row my-1">
+                <div class="col-3">
+                    <span class="lbl">Ref. No:</span>
+                </div>
+                <div class="col-9">
+                    <div class="input-group">
+
+                        <input asp-for="ReferneceNo" name="ReferneceNo" id="" type="text" class=" border-left-0 form-control" />
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="m-0 row my-1">
+                <div class="col-3">
+                    <span class="lbl">Ref. Date:</span>
+                </div>
+                <div class="col-9">
+                    <input type="text" placeholder="dd-mm-yyyy" asp-for="ReferenceData" name="ReferenceData" id="RefDate" class="w-100 form-control datepicker" />
+                </div>
+            </div>
+
+        </div>
+        <div class="col-md-3 p-0 ">
+            <div class="m-0 row  my-1">
+                <div class="col-3">
+                    <span class="lbl">P.O.No:</span>
+                </div>
+                <div class="col-9">
+                    <input name="PO_No" asp-for="PO_No" type="text" class="w-100 form-control" />
+
+                </div>
+
+            </div>
+
+            <div class="m-0 row my-1">
+                <div class="col-3 ">
+                    <span class="lbl">P.O.Date:</span>
+                </div>
+                <div class="col-9">
+                    <input type="text" name="PO_Date" id="PO_Date" asp-for="PO_Date" placeholder="dd-mm-yyyy" class="w-100 form-control" />
+                </div>
+            </div>
+
+        </div>
+        <div class="col-md-3 p-0 ">
+            <div class="m-0 row my-1">
+                <div class="col-3">
+                    <span class="lbl">VehicleNo:</span>
+                </div>
+                <div class="col-9">
+                    <input name="VehicleNo" asp-for="VehicleNo" type="text" placeholder="RJ-AA-1234" class=" form-control w-100">
+                </div>
+
+            </div>
+
+            <div class="m-0 row my-1">
+                <div class="col-3">
+                    <span class="lbl">Code No:</span>
+                </div>
+                <div class="col-9 ">
+                    <input type="text" name="Code_No" asp-for="Code_No" class="w-100 form-control" />
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" value="@((int)TrsnsacctionsType.Sales)" id="TransactionType" asp-for="TransactionType" name="TransactionType" />
+    </div>
+
+    <div class="row pb-2 my-2" style="border-bottom: 3px darkslateblue solid;">
+        <div class="col-md-5 p-0">
+            <div class="bg-secondary text-center"><label>Bill to Party</label></div>
+            <div class="row">
+                <div class="col-sm-5 mx-3">
+                    <div class=" custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="CashMode" asp-for="IsCash" onclick="CashPay()">
+                        <label class="custom-control-label bootstrap-switch-label" style="font-size: 17px;" for="CashMode">ISCash </label>
+                    </div>
+                </div>
+                <div class="col-sm-5">
+                    <label onclick="AddPartys()"style="cursor:pointer;" class="mx-2">&nbsp;<i class="fas fa-plus-circle"></i>New</label>
+                </div>
+            </div>
+            <div class="row my-1">
+                <div class="col-3">
+                    <label class="label">Customer Name</label>
+                </div>
+                <div class="col-9" id="CustmerInfo">
+                    <select class="form-control js-example-basic-multiple form-control w-75 Parties" onchange="GetClientInfo()" asp-for="PartyId" id="PartyId" name="PartyId"
+                            asp-items="@(new SelectList(party,"Id","CompanyName"))">
+                    </select>
+                </div>
+                <div class="col-9" id="CashCustomer">
+                    <input type="text" name="CustomerName" ng-model="CashCustomerName" asp-for="CustomerName" id="CashCustomerName" class="w-75 form-control" />
+                </div>
+            </div>
+            <div class="row my-1">
+                <div class="col-3">
+                    <label>Mobile:</label>
+                </div>
+                <div class="col-9">
+                    <input type="text" name="" id="Mobile" class="w-75 form-control" required />
+                </div>
+            </div>
+            <div class="row my-1">
+                <div class="col-3">
+                    <label>Email:</label>
+                </div>
+                <div class="col-9">
+                    <input type="text" name="" id="Email" class="w-75 form-control" required />
+                </div>
+            </div>
+            <div class="row my-1">
+                <div class="col-3">
+                    <label>Addres:</label>
+                </div>
+                <div class="col-9">
+                    <textarea type="text" name="" id="Address" class="w-75 form-control" required></textarea>
+
+                </div>
+            </div>
+            <div class="row my-1">
+                <div class="col-3">
+                    <label>GSTIN:</label>
+                </div>
+                <div class="col-9">
+                    <input type="text" name="" id="GSTIN" class="w-75 form-control" />
+                </div>
+            </div>
+            <div class="row my-1">
+                <div class="col-3">
+                    <span class="lbl"><b>State:</b></span>
+                </div>
+                <div class="col-9">
+                    <select class="w-75 form-control" id="StateId1" onchange="GetCityList()" name=""
+                            asp-items="@(new SelectList(states,"Id","Name"))">
+                    </select>
+                </div>
+            </div>
+            <div class="row my-1">
+                <div class="col-3">
+                    <span class="lbl"><b>City:</b></span>
+                </div>
+                <div class="col-9">
+
+                    <select class="w-75 form-control" id="CityId1" name=""
+                            asp-items="@(new SelectList(city,"Id","Name"))">
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 p-4">
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="SameAs" checked onclick="SameAsShipping()">
+                <label class="custom-control-label bootstrap-switch-label" style="font-size: 17px;" for="SameAs">Same As</label>
+            </div>
+        </div>
+
+        <div class="col-md-5 p-0">
+            <div class="bg-secondary text-center" style="margin-bottom:32px;"><label>Ship to Party</label></div>
+            <div class="row my-1">
+                <div class="col-3">
+                    <label for="StateId">Customer Name</label>
+                </div>
+                <div class="col-9">
+                    <input type="text" class="form-control w-75" ng-model="CashCustomerName" asp-for="ShipongPartyName" id="PartyId2" name="ShipongPartyName" />
+                </div>
+            </div>
+            <div class="row my-1">
+                <div class="col-3">
+                    <label>Mobile:</label>
+                </div>
+                <div class="col-9">
+                    <input type="number" id="Mobile2" name="ShipongPartyMobile" asp-for="ShipongPartyMobile" class="w-75 form-control" />
+                </div>
+            </div>
+            <div class="row my-1">
+                <div class="col-3">
+                    <label>Email:</label>
+                </div>
+                <div class="col-9">
+                    <input type="text" name="ShipongPartyEmail" asp-for="ShipongPartyEmail" id="Email2" class="w-75 form-control" required />
+                </div>
+            </div>
+            <div class="row my-1">
+                <div class="col-3">
+                    <label>Addres:</label>
+                </div>
+                <div class="col-9">
+                    <textarea type="text" id="Address2" name="ShipongPartyAddress" asp-for="ShipongPartyAddress" class="w-75 form-control"></textarea>
+                </div>
+            </div>
+            <div class="row my-1">
+                <div class="col-3">
+                    <label>GSTIN:</label>
+                </div>
+                <div class="col-9">
+                    <input type="text" name="ShipongPartyGStNo" asp-for="ShipongPartyGStNo" id="GSTN2" class="w-75 form-control" />
+                </div>
+            </div>
+            <div class="row my-1">
+                <div class="col-3">
+                    <span class="lbl"><b>State:</b></span>
+                </div>
+                <div class="col-9">
+                    <select class="w-75 form-control" id="StateId2" name="ShipongPartyStateId" onchange="GetCityList2()" asp-for="ShipongPartyStateId"
+                            asp-items="@(new SelectList(states,"Id","Name"))">
+                    </select>
+                </div>
+            </div>
+            <div class="row my-1">
+                <div class="col-3">
+                    <span class="lbl"><b>City:</b></span>
+                </div>
+                <div class="col-9">
+                    <select class="w-75 form-control" id="CityId2" name="ShipongPartyCityId" asp-for="ShipongPartyCityId"
+                            asp-items="@(new SelectList(city,"Id","Name"))">
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="row ml-1" style="height: 20px;">
+        <div class="col-9">
+            <div class="row">
+                @*<div class="form-group col-2 p-0" id="ItemInput">
+                        <label asp-for="ItemId" class="control-label">Item <a href="/Client/Item" class="ml-2">&nbsp;<i class="fas fa-plus-circle"></i>New</a></label>
+
+                    </div>*@
+
+                <div class="form-group col-4 p-0" id="ItemInput">
+                    @*<label asp-for="ItemId" class="control-label">Item <a href="/Client/Item" class="ml-2">&nbsp;<i class="fas fa-plus-circle"></i>New</a></label>*@
+
+                    <div class="row">
+                        <div class="col-1 p-0">
+                            @*<a onclick="DeleteItem( )" href="javascript:void(0);" class=""><i class="fas fa-trash"></i></a>*@
+                        </div>
+                        <div class="col-6 p-0">
+                            <label asp-for="ItemId" class="control-label">Item <a onclick="AddItems()" style="cursor:pointer;" class="ml-2">&nbsp;<i class="fas fa-plus-circle"></i>New</a></label>
+                        </div>
+                        <div class="col-5 p-0">
+                            <label class="control-label">HNS Code</label>
+                        </div>
+                    </div>
+                </div>
+
+                @*<div class="form-group col-2 p-0 ">
+                        <label class="control-label">HNs Code</label>
+                    </div>*@
+                <div class="form-group col-1 p-0">
+                    <label asp-for="Quantity" class="control-label"></label>
+                </div>
+                <div class="form-group col-2 p-0" id="Serial">
+
+                    <label class="control-label">Serial No</label>
+                </div>
+                <div class="form-group col-2 p-0">
+                    <label asp-for="UnitId" class="control-label"></label>
+
+                </div>
+                <div class="form-group col-1 p-0">
+                    <label class="control-label">
+                        Price
+                        @*<select class="border w-25" asp-for="IsTaxable_SP" id="IsTaxableSP_ " asp-items="@Html.GetEnumSelectList<TaxType>()" name="TransactionItemsDetails[ ].IsTaxable_SP" onchange="TaxType( )">
+                            </select>*@
+                    </label>
+                </div>
+                <div class="form-group col-1 p-0">
+                    <label class="control-label">Dis.(%)</label>
+                </div>
+                <div class="form-group col-1 p-0">
+                    <label asp-for="DisAmount" class="control-label"></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-3">
+            <div class="row">
+                <div class="col-6 p-0 tooltip-wrap">
+                    <label class="control-label ml-2">TotalTaxAmt</label>
+                </div>
+                <div class="col-6 p-0">
+                    <label asp-for="TotalAmount" class="control-label"></label>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+    <div id="TransactionsInfo2"></div>
+    <input type="hidden" value="0" id="NoOfItems" />
+    <input type="hidden" id="deletedItems" />
+    <input type="hidden" id="CurrentdeletedItems" />
+
+    <div class="col-12">
+        <div class="px-5">
+            <a href="" id="TransactionInfoCopy"><i class="fas fa-plus-circle"></i></a>
+        </div>
+        <div class="row">
+
+
+            @*<div class="px-2">
+                    <a onclick="DeleteItem()" href="javascript:void(0);" class=""><i class="fas fa-trash"></i></a>
+                </div>*@
+
+
+            @*<div class="custom-control custom-radio custom-control-inline col-sm-3">
+                    <input type="radio" class="custom-control-input" id="CashModeofPayment" name="ModeofPayment" onclick="PaymentType()" value="customEx" checked>
+                    <label class="custom-control-label" for="CashModeofPayment">Cash</label>
+
+                </div>
+                <div class="custom-control custom-radio custom-control-inline col-sm-3">
+                    <input type="radio" class="custom-control-input" id="ChaqueDDNEFT" onclick="PaymentType()" name="ModeofPayment" value="customEx">
+                    <label class="custom-control-label" for="ChaqueDDNEFT">Chaque/DD/NEFT</label>
+                </div>*@
+            <div class="col-6">
+                <div class="col-6">
+                    <span class="lbl">PaymentMode:</span>
+                    <div>
+                        @if (TransactionType != null && TransactionType.Count() > 0)
+                        {
+                            @foreach (var b in TransactionType)
+                            {
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio" class="custom-control-input" id="@b" onclick="PaymentTypeInfo('@b')" name="PaymentMode" value="@b">
+                                    <label class="custom-control-label" for="@b">@b.ToString()</label> <br />
+                                    <p id="Amount_@b" style="margin-top: 16px; margin-left: -32px;">00</p>
+                                </div>
+
+                            }
+                        }
+                        else
+                        {
+                            <a href="/Client/PaymentMode" class="mx-2">&nbsp;<i class="fas fa-plus-circle"></i><i class="bg-danger">Please Add Payment Method</i></a>
+                        }
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="row">
+                        <div class="col-6">
+                            <label class="control-label">Description:</label> <a style="font-size: 11px;cursor:pointer;" @*href="/Client/Descration"*@ onclick="AddDescAsTemplate()" class="mx-2">&nbsp;<i class="fas fa-plus-circle">Save Description</i></a>
+                            <input id="txtOrigin" name="Description" asp-for="Description" class="form-control" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-check-label mt-4 float-right mx-5">
+                                <input class="form-check-input" onclick="RoundOf()"id="IsRoundOff" asp-for="IsRoundOff" /> @Html.DisplayNameFor(model => model.IsRoundOff)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group col-6">
+                    <label class="control-label">Attachment</label>
+                    <div class="custom-file">
+                        <input type="file" name="Attachments" asp-for="Attachments" class="custom-file-input" id="custom-file-input ">
+                        <label class="custom-file-label" asp-for="Attachments" for="customFile">Choose file</label>
+                    </div>
+                    <span asp-validation-for="Attachments" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="row">
+                    <div class="col-4" id="HideSGST">
+                        <label class="control-label">SGST/UGST</label>
+                        <input name="SGST" asp-for="SGST" id="SGST" type="text" value="00" class="form-control" />
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="col-4" id="HideCGST">
+                        <label class="control-label">CGST</label>
+                        <input name="CGST" asp-for="CGST" id="CGST" type="text" value="00" class="form-control" />
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="col-4" id="HideIGST">
+                        <label class="control-label">IGST</label>
+                        <input name="IGST" asp-for="IGST" id="IGST" type="text" value="00" class="form-control" />
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="col-4" id="HideIGST">
+                        <label class="control-label"> Total Taxable Amount</label>
+                        <input name="TaxbleAmt" asp-for="TaxbleAmt" id="TaxbleAmt" value="00" type="text" class="form-control" />
+                        <span class="text-danger"></span>
+
+                        <input id="TaxbleAmt2" value="00" type="hidden" />
+                    </div>
+                </div>
+
+                <div class="row">
+
+                    <div class="col-sm-4">
+                        <label class="control-label">Extra Charge</label>
+                        <input type="number" class="form-control"asp-for="ExtraChargeAmt" name="ExtraChargeAmt" value="00" id="ExtraChargeExpenses" data-toggle="modal" data-target="#Expenses" readonly />
+                    </div>
+
+                    <div class="col-sm-4">
+                        <label class="control-label">Extra Charge(Tax)</label>
+                        <input type="number" class="form-control" asp-for="ExtraChargeTax" name="ExtraChargeTax" value="00" id="ExtraChargeExpensesTax" data-toggle="modal" data-target="#Expenses" readonly />
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="control-label">Rounf Off Amount</label>
+                        <input type="text" class="form-control"  name="RoundOffAmt" id="RounOfAmt" />
+                    </div>
+                    <input type="hidden" id="ExtraExpenseTaxble" />
+                    <input type="hidden" id="ExtraExpenseWithoutTaxble" />
+                </div>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <label class="control-label">Sub Total:</label>
+                        <input type="text" asp-for="TotalAmount" id="SubTotal" onkeyup="" class="form-control " required />
+                        <input type="hidden" id="SubTotal2"/>
+                    </div>
+                    <div class="col-sm-4">
+                        <label asp-for="RecievedAmt" class="control-label">RecievedAmt:</label>
+                        <input asp-for="RecievedAmt" readonly type="text" id="RecievedAmt" onkeyup="ReminingBal()" value="00" class="form-control " />
+                        <span asp-validation-for="RecievedAmt" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <label class="control-label">RemainingAmt:</label>
+                        <input asp-for="RemainingAmt" type="text" id="RemainingAmt" class="form-control " />
+                        <span asp-validation-for="RemainingAmt" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6 float-right">
+
+            <div class="modal text-center fade m-3" id="FinanceModel">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h6 class="modal-title">Finance Information</h6>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                        <div class="border float-right p-2 m-2" style="border-radius:8px;">
+
+                            <div class="row border-top">
+                                <div class="col-sm-3">
+                                    <label class="label">Finance Company</label>
+                                    <select class="form-control w-100" id="" name="FinanceInfos[0].FinanceCompanyName">
+                                        <option>Select</option>
+                                        <option value="Bajaj_Finserv_Ltd">Bajaj Finserv Ltd</option>
+                                        <option value="Capital_India_Finance">Capital India Finance</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="label">AssetCost AsPerBill</label>
+                                    <input type="number" class="form-control w-100" id="AssetCostAsPerBill" onkeyup="LoanAmountAdd()" name="FinanceInfos[0].AssetsCost" placeholder="">
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="label">Loan Amount</label>
+                                    <input type="number" class="form-control w-100" id="LoanAmounts" name="FinanceInfos[0].LoanAmount" placeholder="" readonly>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="label">Margin Money</label>
+                                    <input type="number" class="form-control w-100" id=" " name="FinanceInfos[0].MarginMoney" placeholder="">
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="label">Term Duration(in Month)</label>
+                                    <input type="number" class="form-control w-100" id="TotalEMI" onkeyup="EmiMaount();" name="FinanceInfos[0].No_Of_EMI" placeholder="Term Duration(in Month)">
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="label">EMI Amount</label>
+                                    <input type="number" class="form-control w-100" id="EMIAmount" name="FinanceInfos[0].EMI_Amount" placeholder="">
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="label">Number Of Advance EMI</label>
+                                    <input type="number" class="form-control w-100" id="AdvanceEMI" onkeyup="AdvanEMIamount();" name="FinanceInfos[0].AdvanceEMI" placeholder="">
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="label">Bundle Total EMI</label>
+                                    <input type="number" class="form-control w-100" id="AdvanceEMIAmt" name="FinanceInfos[0].BundleAdvanceEMIAmt" placeholder="" readonly>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="label">File Charge</label>
+                                    <input type="number" class="form-control w-100" id="FileCharges" onkeyup="DownPayment();" name="FinanceInfos[0].FileCharge" placeholder="">
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="label">Down Payment</label>
+                                    <input type="number" class="form-control w-100" id="DownPayments" name="FinanceInfos[0].DownPayment" placeholder="" readonly>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="label">Net Loan Amount</label>
+                                    <input type="number" class="form-control w-100" id="NetLoanAmount" name="FinanceInfos[0].NetLoanAmt" placeholder="" readonly>
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="label">DBD Percentage</label>
+                                    <input type="number" class="form-control w-100" id="DbdPercentages" onkeyup="DBDAmountCal()" name="FinanceInfos[0].DBDPercentage" placeholder="">
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="label">DBD Amount</label>
+                                    <input type="number" class="form-control w-100" id="DbdAmount" name="FinanceInfos[0].DBDAmt" placeholder="" readonly>
+                                </div>
+
+                                <div class="col-sm-3">
+                                    <label class="label">GST Amount</label>
+                                    <input type="number" class="form-control w-100" id="GstAmount" name="FinanceInfos[0].GSTAmt" placeholder="">
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="label">Net Disbursal Amount</label>
+                                    <input type="number" class="form-control w-100" id="NetAmount" name="FinanceInfos[0].NetDisbursalAmt" placeholder="">
+                                </div>
+                                <div class="col-sm-3">
+                                    <label class="label">Down Payment Via</label>
+                                    <select class="form-control" name="FinanceInfos[0].DownPaymentVia"
+                                            asp-items="@(new SelectList(banks,"Name","Name"))">
+                                        <option value="Cash">Cash</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <h6>Total Remaining Amount: <span class="Remaining mx-2">0</span></h6>
+                            <h6>Total Recieved Amount :<span class="Recieved mx-2">0</span></h6>
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal text-center fade m-3" id="CashPart">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h6 class="modal-title">Cash</h6>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                        <div class="border float-right p-2 m-2" style="border-radius:8px;">
+                            <div class="col-sm-6 ml-2">
+                                <label for="cash amt">Cash Amount</label>
+                                <input type="number" class="form-control w-100" value="0" id="CashAmt" onkeyup="ReminingBal()" name="CashTransactions[0].cashAmt" placeholder="">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <h6>Total Remaining Amount: <span class="Remaining mx-2">0</span></h6>
+                            <h6>Total Recieved Amount :<span class="Recieved mx-2">0</span></h6>
+                            <button type="button" class="btn btn-primary" data-dismiss="modal">Save</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal text-center fade m-3" id="BankModel">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">Bank</h6>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="border float-right p-2 m-2" style="border-radius:8px;">
+                    <div class="col-sm-12">
+                        @*<p> Chaque</p>*@
+                        <div class="custom-control custom-radio custom-control-inline col-sm-3">
+                            <input type="radio" class="custom-control-input" id="Chaque" name="BankTrnxInfos[0].BankTnxType" value="Chaque">
+                            <label class="custom-control-label" for="Chaque">Chaque</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline col-sm-3">
+                            <input type="radio" class="custom-control-input" id="DemandDraft" name="BankTrnxInfos[0].BankTnxType" value="DemandDraft">
+                            <label class="custom-control-label" for="DemandDraft">Demand Draft</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline col-sm-3">
+                            <input type="radio" class="custom-control-input" id="NEFT" name="BankTrnxInfos[0].BankTnxType" value="NEFT">
+                            <label class="custom-control-label" for="NEFT">NEFT</label>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <label for="cash amt">Deposit To:</label>
+                            <select class="form-control" name="BankTrnxInfos[0].DepositTo"
+                                    asp-items="@(new SelectList(banks,"Name","Name"))">
+                            </select>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="cash amt"> Ch./DD/NEFT No.</label>
+                            <input type="text" class="form-control w-100" id=" " name="BankTrnxInfos[0].ChequeNo" placeholder="">
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="cash amt"> Ch./DD/NEFT Date</label>
+                            <input type="date" class="form-control w-100" id=" " name="BankTrnxInfos[0].chequeDate" placeholder="">
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="cash amt"> Bank Name</label>
+                            @*<select asp-items="@(new SelectList(Bank,"Name","Name"))" class="form-control w-100" id="" name="BankName">
+                                </select>*@ <input type="text" class="form-control w-100" id="" name="BankTrnxInfos[0].BankName" placeholder="">
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="cash amt"> IFC Code  </label>
+                            <input type="text" class="form-control w-100" id=" " name="BankTrnxInfos[0].IFCcode" placeholder="">
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="cash amt">Amount</label>
+                            <input type="number" class="form-control w-100" onkeyup="ReminingBal()" id="BankAmt" value="0" name="BankTrnxInfos[0].Amount" placeholder="">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <h6>Total Remaining Amount: <span class="Remaining mx-2">0</span></h6>
+                    <h6>Total Recieved Amount :<span class="Recieved mx-2">0</span></h6>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal text-center fade m-3" id="WalletModel">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">Wallet</h6>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="border float-right p-2 m-2" style="border-radius:8px;">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <label for="cash amt"> Wallet Name</label>
+                            <select @*asp-items="@(new SelectList(Bank,"Name","Name"))"*@ class="form-control w-100" id="" name="WalletInfos[0].Wallet_Name">
+                                <option>Select Wallet</option>
+                                <option value="Paytm">Paytm</option>
+                                <option value="Airtel">Airtel Money</option>
+                                <option value="ICICI Pockets">ICICI Pockets</option>
+                                <option value="MobiKwik">MobiKwik</option>
+                                <option value="Freecharge">Freecharge</option>
+                                <option value="Jio Money">Jio Money</option>
+                                <option value="mRupee">mRupee</option>
+                                <option value="Vodafone M-Pesa">Vodafone M-Pesa</option>
+                                <option value="SBI Buddy">SBI Buddy</option>
+                                <option value="HDFC PayZapp">HDFC PayZapp</option>
+                                <option value="Axis Bank Lime">Axis Bank Lime</option>
+                                <option value="ItzCash">ItzCash</option>
+                                <option value="Citrus Wallet">Citrus Wallet</option>
+                                <option value="Oxigen Wallet">Oxigen Wallet</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="cash amt">UPI Id</label>
+                            <input type="text" class="form-control w-100" id=" " name="WalletInfos[0].UPI_Id" placeholder="">
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="cash amt">Transaction Id</label>
+                            <input type="text" class="form-control w-100" id=" " name="WalletInfos[0].UPItanxId" placeholder="">
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="cash amt">Amount</label>
+                            <input type="number" class="form-control w-100" onkeyup="ReminingBal()" id="WalletAmt" value="0" name="WalletInfos[0].Amount" placeholder="">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <h6>Total Remaining Amount: <span class="Remaining mx-2">0</span></h6>
+                    <h6>Total Recieved Amount :<span class="Recieved mx-2">0</span></h6>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row m-2">
+        <div class="form-group col-7">
+            <input type="submit" value="Submit" onclick="clicked(event)" class="btn btn-primary" />
+        </div>
+        <div class="form-group col-5 ">
+            <input type="button" onclick="Back()" value="Back" class="btn btn-primary float-right" />
+        </div>
+    </div>
+     
+    <div class="modal text-center fade m-3" id="Expenses">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Expenses</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row" style="height:23px">
+                        <div class="col-8">
+                            <div class="row">
+
+
+                                <div class="col-3 p-0">
+                                    <label class="control-label">Item <a href="/Client/ExtraChargeCreate" class="ml-2">&nbsp;<i class="fas fa-plus-circle"></i>New</a></label>
+                                </div>
+                                <div class="col-2 p-0">
+                                    <label class="control-label">Type</label>
+                                </div>
+                                <div class="col-3 p-0">
+                                    <label class="control-label">HNS Code</label>
+                                </div>
+                                <div class="col-2 p-0">
+                                    <label class="control-label">Amount</label>
+                                </div>
+                                <div class="col-2 p-0">
+                                    <label class="control-label">GST Rate</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="row">
+
+                                <div class="col-3 p-0">
+                                    <label class="control-label">Tax</label>
+                                </div>
+                                <div class="col-5 p-0">
+                                    <label class="control-label">Taxable Amount</label>
+                                </div>
+                                <div class="col-4 p-0">
+                                    <label class="control-label">IsTaxable</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="row">
+                                <div class="col-3 p-0">
+                                    <select class="form-control" id="ExpensesItem_0" onchange="GetExtrachargeExpInfo(0);" name="ExtraChargesDada[0].ExtraChargeId" asp-items="@(new SelectList(charges,"Id","Name"))">
+                                        <option value="0">Select Item</option>
+                                    </select>
+                                </div>
+                                <div class="col-2 p-0">
+                                    <select class="form-control" id="ExpensesType_0" name="ExtraChargesDada[0].ExtrachrgeType" asp-items="@Html.GetEnumSelectList<ExtraChargeCategory>()" disabled>
+                                    </select>
+                                </div>
+                                <div class="col-3 p-0">
+                                    <input name="ExtraChargesDada[0].HNSCode" maxlength="8" type="text" id="ExpensesHNS_0" value="" class="form-control" readonly />
+                                </div>
+                                <div class="col-2 p-0">
+                                    <input type="number" value="00" name="ExtraChargesDada[0].Amount" class="form-control" id="ExtraChargeExpItemAmt_0" onkeyup="IsTaxApplicableOnExtraChrgeExp(0)" disabled />
+                                </div>
+                                <div class="col-2 p-0 ">
+                                    <select class="form-control" id="ExpensesTax_0" asp-items="@(new SelectList(taxes,"Id","TaxName"))" readonly></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="row">
+                                <div class="col-3 p-0">
+                                    <input type="text" value="00" name="ExtraChargesDada[0].Tax" class="form-control" id="TaxAmt_0" readonly />
+                                </div>
+                                <div class="col-5 p-0">
+                                    <input type="number" value="00" name="ExtraChargesDada[0].TaxableVal" class="form-control" id="ExtraChargeExpAmt_0" @*onkeyup="TotalExtraChargeExpense(0)"*@ readonly />
+                                </div>
+                                <div class="col-4 p-0">
+                                    <select class="border form-control" name="ExtraChargesDada[0].IsTaxIncluded" onchange="IsTaxApplicableOnExtraChrgeExp(0)" id="ExpensesTaxTypeExp_0" @*asp-items="@Html.GetEnumSelectList<TaxType>()"*@>
+                                        <option value="true">WithoutTax</option>
+                                        <option value="false">WithTax</option>
+                                    </select>
+                                </div>
+                                <input type="hidden" name="ExtraChargesDada[0].IsTaxable" id="IsTaxbleExp_0" />
+                                <input type="hidden" id="ExpensesType1_0" value="2" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="row">
+                                <div class="col-3 p-0">
+                                    <select class="form-control" id="ExpensesItem_1" onchange="GetExtrachargeExpInfo(1);" name="ExtraChargesDada[1].ExtraChargeId" asp-items="@(new SelectList(charges,"Id","Name"))">
+                                        <option value="0">Select Item</option>
+                                    </select>
+                                </div>
+                                <div class="col-2 p-0">
+                                    <select class="form-control" id="ExpensesType_1" name="ExtraChargesDada[1].ExtrachrgeType" asp-items="@Html.GetEnumSelectList<ExtraChargeCategory>()" disabled>
+                                    </select>
+                                </div>
+                                <div class="col-3 p-0">
+                                    <input name="ExtraChargesDada[1].HNSCode" maxlength="8" type="text" id="ExpensesHNS_1" value="" class="form-control" readonly />
+                                </div>
+                                <div class="col-2 p-0">
+                                    <input type="number" value="00" name="ExtraChargesDada[1].Amount" class="form-control" id="ExtraChargeExpItemAmt_1" onkeyup="IsTaxApplicableOnExtraChrgeExp(1)" disabled />
+                                </div>
+
+                                <div class="col-2 p-0 ">
+                                    <select class="form-control" id="ExpensesTax_1" asp-items="@(new SelectList(taxes,"Id","TaxName"))" readonly></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="row">
+                                <div class="col-3 p-0">
+                                    <input type="text" value="00" name="ExtraChargesDada[1].Tax" class="form-control" id="TaxAmt_1" readonly />
+                                </div>
+                                <div class="col-5 p-0">
+                                    <input type="number" value="00" name="ExtraChargesDada[1].TaxableVal" class="form-control" id="ExtraChargeExpAmt_1" @*onkeyup="TotalExtraChargeExpense(0)"*@ readonly />
+                                </div>
+                                <div class="col-4 p-0">
+                                    <select class="border form-control" name="ExtraChargesDada[1].IsTaxIncluded" onchange="IsTaxApplicableOnExtraChrgeExp(1)" id="ExpensesTaxTypeExp_1" @*asp-items="@Html.GetEnumSelectList<TaxType>()"*@>
+                                        <option value="true">WithoutTax</option>
+                                        <option value="false">WithTax</option>
+                                    </select>
+                                </div>
+                                <input type="hidden" name="ExtraChargesDada[1].IsTaxable" id="IsTaxbleExp_1" />
+                                <input type="hidden" id="ExpensesType1_1" value="2" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="row">
+                                <div class="col-3 p-0">
+                                    <select class="form-control" id="ExpensesItem_2" onchange="GetExtrachargeExpInfo(2);" name="ExtraChargesDada[2].ExtraChargeId" asp-items="@(new SelectList(charges,"Id","Name"))">
+                                        <option value="0">Select Item</option>
+                                    </select>
+                                </div>
+                                <div class="col-2 p-0">
+                                    <select class="form-control" id="ExpensesType_2" name="ExtraChargesDada[2].ExtrachrgeType" asp-items="@Html.GetEnumSelectList<ExtraChargeCategory>()" disabled>
+                                    </select>
+                                </div>
+                                <div class="col-3 p-0">
+                                    <input name="ExtraChargesDada[2].HNSCode" maxlength="8" type="text" id="ExpensesHNS_2" value="" class="form-control" readonly />
+                                </div>
+                                <div class="col-2 p-0">
+                                    <input type="number" value="00" name="ExtraChargesDada[2].Amount" class="form-control" id="ExtraChargeExpItemAmt_2" onkeyup="IsTaxApplicableOnExtraChrgeExp(2)" disabled />
+                                </div>
+
+                                <div class="col-2 p-0 ">
+                                    <select class="form-control" id="ExpensesTax_2" asp-items="@(new SelectList(taxes,"Id","TaxName"))" readonly></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="row">
+                                <div class="col-3 p-0">
+                                    <input type="text" value="00" name="ExtraChargesDada[2].Tax" class="form-control" id="TaxAmt_2" readonly />
+                                </div>
+                                <div class="col-5 p-0">
+                                    <input type="number" value="00" name="ExtraChargesDada[2].TaxableVal" class="form-control" id="ExtraChargeExpAmt_2" @*onkeyup="TotalExtraChargeExpense(0)"*@ readonly />
+                                </div>
+                                <div class="col-4 p-0">
+                                    <select class="border form-control" name="ExtraChargesDada[2].IsTaxIncluded" onchange="IsTaxApplicableOnExtraChrgeExp(2)" id="ExpensesTaxTypeExp_2" @*asp-items="@Html.GetEnumSelectList<TaxType>()"*@>
+                                        <option value="true">WithoutTax</option>
+                                        <option value="false">WithTax</option>
+                                    </select>
+                                </div>
+                                <input type="hidden" name="ExtraChargesDada[2].IsTaxable" id="IsTaxbleExp_2" />
+                                <input type="hidden" id="ExpensesType1_2" value="2" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="row">
+                                <div class="col-3 p-0">
+                                    <select class="form-control" id="ExpensesItem_3" onchange="GetExtrachargeExpInfo(3);" name="ExtraChargesDada[3].ExtraChargeId" asp-items="@(new SelectList(charges,"Id","Name"))">
+                                        <option value="0">Select Item</option>
+                                    </select>
+                                </div>
+                                <div class="col-2 p-0">
+                                    <select class="form-control" id="ExpensesType_3" name="ExtraChargesDada[3].ExtrachrgeType" asp-items="@Html.GetEnumSelectList<ExtraChargeCategory>()" disabled>
+                                    </select>
+                                </div>
+                                <div class="col-3 p-0">
+                                    <input name="ExtraChargesDada[3].HNSCode" maxlength="8" type="text" id="ExpensesHNS_3" value="" class="form-control" readonly />
+                                </div>
+                                <div class="col-2 p-0">
+                                    <input type="number" value="00" name="ExtraChargesDada[3].Amount" class="form-control" id="ExtraChargeExpItemAmt_3" onkeyup="IsTaxApplicableOnExtraChrgeExp(3)" disabled />
+                                </div>
+
+                                <div class="col-2 p-0 ">
+                                    <select class="form-control" id="ExpensesTax_3" asp-items="@(new SelectList(taxes,"Id","TaxName"))" readonly></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="row">
+                                <div class="col-3 p-0">
+                                    <input type="text" value="00" name="ExtraChargesDada[3].Tax" class="form-control" id="TaxAmt_3" readonly />
+                                </div>
+                                <div class="col-5 p-0">
+                                    <input type="number" value="00" name="ExtraChargesDada[3].TaxableVal" class="form-control" id="ExtraChargeExpAmt_3" @*onkeyup="TotalExtraChargeExpense(0)"*@ readonly />
+                                </div>
+                                <div class="col-4 p-0">
+                                    <select class="border form-control" name="ExtraChargesDada[3].IsTaxIncluded" onchange="IsTaxApplicableOnExtraChrgeExp(3)" id="ExpensesTaxTypeExp_3" @*asp-items="@Html.GetEnumSelectList<TaxType>()"*@>
+                                        <option value="true">WithoutTax</option>
+                                        <option value="false">WithTax</option>
+                                    </select>
+                                </div>
+                                <input type="hidden" name="ExtraChargesDada[3].IsTaxable" id="IsTaxbleExp_3" />
+                                <input type="hidden" id="ExpensesType1_3" value="2" />
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" value="00" id="ExtraChargetaxble_0" />
+                    <input type="hidden" value="00" id="ExtraChargetaxble_1" />
+                    <input type="hidden" value="00" id="ExtraChargetaxble_2" />
+                    <input type="hidden" value="00" id="ExtraChargetaxble_3" />
+                    <input type="hidden" value="00" id="TotExtraChargetaxble" />
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+@section Scripts{
+
+    <script src="~/plugins/ajaxgrid/AjaxGrid.js"></script>
+    <script src="~/js/addsale.js"></script>
+    <script>
+
+
+        function RoundOf() {
+            var toatalval = $("#SubTotal2").val();
+            if (document.querySelector('#IsRoundOff').checked) {
+                var AfterRoundOf = Math.round(toatalval);
+                var RoundOfVal = + toatalval - AfterRoundOf;
+                $("#SubTotal").val(AfterRoundOf);
+                $('#RemainingAmt').val(AfterRoundOf);
+                $('.Remaining').text(AfterRoundOf);
+                if (RoundOfVal >= 0.50) {
+                    $("#RounOfAmt").val((RoundOfVal - (2 * RoundOfVal)).toFixed(2));
+                }
+                else {
+                    $("#RounOfAmt").val((RoundOfVal - (2 * RoundOfVal)).toFixed(2));
+                }
+            }
+            else {
+
+                $("#RounOfAmt").val(00);
+                $("#SubTotal").val(toatalval);
+                $('#RemainingAmt').val(toatalval);
+                $('.Remaining').text(toatalval);
+            }
+
+        }
+
+        function GetExtrachargeExpInfo(id) {
+            var Type = { search: $("#ExpensesItem_" + id).val() }
+
+            $("#ExtraChargeExpItemAmt_"+id).prop('disabled', false);
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetExtraChargeInfo", "Client")',
+                dataType: 'JSON',
+                data: Type,
+                success: function (data) {
+                     
+                    $("#ExpensesHNS_" + id).val(data.HNS_Code);
+                    $("#IsTaxbleExp_" + id).val(data.IsGstApplicable);
+                    $("#ExpensesType_" + id).val(data.IncomeExpenses);
+                    $("#ExpensesType1_" + id).val(data.IncomeExpenses);
+                    if (data.IsGstApplicable == true) {
+                        $("#ExpensesTaxTypeExp_" + id).val('true');
+                        $("#ExpensesTax_" + id).prop('disabled', false);
+                        $("#ExpensesTax_" + id).val(data.GST);
+                        IsTaxApplicableOnExtraChrgeExp(id);
+                    }
+                    else {
+                        $("#ExpensesTaxTypeExp_" + id).val('false');
+                        $("#ExpensesTax_" + id).prop('disabled', true);
+                        $("#ExpensesTax_" + id).val(0);
+                    }
+                    IsTaxApplicableOnExtraChrgeExp(id);
+
+                },
+                error: function (error) {
+                    bootbox.alert("An error occured saving description.")
+                }
+
+            });
+        }
+
+        function IsTaxApplicableOnExtraChrgeExp(id) {
+            var txrate = $("#ExpensesTax_" + id).val();
+            var Amount = $("#ExtraChargeExpItemAmt_" + id).val();
+            if (txrate != null) {
+                var Taxs = { TaxRats: txrate }
+                $.ajax({
+                    type: "POST",
+                    url: '/Client/TaxRatesInfo',
+                    dataType: "json",
+                    data: Taxs,
+                    cache: false,
+                    success: function (data) {
+                        var Rate = data.Rate;
+                        if ($("#ExpensesTaxTypeExp_" + id).val() == 'true'){
+                            var NetAmount = (Math.round((Rate / (100 + + Rate)) * Amount).toFixed(2));
+                            $("#TaxAmt_" + id).val(NetAmount);
+                            $("#ExtraChargeExpAmt_" + id).val( Amount - NetAmount);
+                        }
+                        else if ($("#ExpensesTaxTypeExp_" + id).val() == 'false'){
+                            var NetAmount = (Math.round((Rate / 100) * Amount).toFixed(2));
+                            $("#ExtraChargeExpAmt_" + id).val(Amount);
+                            $("#TaxAmt_" + id).val(NetAmount);
+                        }
+                        TotalExtraChargeExpense(id);
+                       // CalCulateExtraChargeExpense(id);
+                    }
+                });
+            }
+            else {
+                $("#TaxAmt_" + id).val(00);
+                $("#ExtraChargeExpAmt_" + id).val(Amount);
+                TotalExtraChargeExpense(id);
+                //CalCulateExtraChargeExpense(id);
+            }
+        }
+
+        function TotalExtraChargeExpense(id) {
+            var Total = 0;
+            var withTax = 0;
+            var withoutTax = 0;
+            var tax = 0;
+            for (var i = 0; i <= 3; i++) {
+                var Amt = $("#ExtraChargeExpAmt_" + i).val();
+                var taxAmt = $("#TaxAmt_" + i).val();
+                var LessOrAdd = $("#ExpensesType_" + i).val();
+                if (LessOrAdd ==@((int)ExtraChargeCategory.Add)) {
+                    Total = + Total + + Amt;
+                    tax = + tax + + taxAmt;
+                }
+                else if (LessOrAdd ==@((int)ExtraChargeCategory.Less)) {
+                    Total = + Total - Amt;
+                    tax = + tax - taxAmt;
+                }
+                var IsTaxable = $('#IsTaxbleExp_' + i).val();
+                if (IsTaxable == 'true') {
+                    withTax = + withTax + + Amt;
+                }
+                else if (IsTaxable == 'false') {
+                    withoutTax = + withoutTax + + Amt;
+                }
+            }
+            $("#ExtraExpenseTaxble").val(withTax)
+            $("#ExtraExpenseWithoutTaxble").val(withoutTax)
+            $("#ExtraChargeExpenses").val(Total)
+            $("#ExtraChargeExpensesTax").val(tax)
+            CalCulateExtraChargeExpense(id);
+          //  GetSubTatal();
+        }
+
+
+        function CalCulateExtraChargeExpense(id) {
+            var TotalItem = $("#NoOfItems").val();
+            var TotalExtraChargeIncom = $("#ExtraChargeExpenses").val();
+            var totalTaxableAmt = $("#TaxbleAmt2").val();
+            var NoOfItems = $('#NoOfItems').val();
+            var AddOrLess = $("#ExpensesType1_" + id).val();
+            var IsTaxable = $("#IsTaxbleExp_" + id).val();
+            var TaxIncluded = $("#ExpensesTaxTypeExp_" + id).val();
+            var TaxAmt = $("#TaxAmt_" + id).val();
+            var TotalAmt = $("#ExtraChargeExpAmt_" + id).val();
+
+            const b = $('#deletedItems').val();
+            const spArr = [...`${b}`].map(Number);
+            console.log(spArr);
+            for (var i = 0; i <= TotalItem; i++) {
+                if (b != "") {
+                    var j = 0;
+                    if (spArr.includes(i) == true) {
+                        continue
+                    }
+                    var ISTaxInclide = $('#IsTaxableSP_' + i).val();
+                    var TaxRate = $("#TaxRates_" + i).val();
+                    var totalItemAmt = $("#TotalAmount_" + i).val();
+                    var ItemTaxableAmt = $("#TaxableValue2_" + i).val();
+
+                    if (AddOrLess == @((int)ExtraChargeCategory.Add)) {
+                        if (IsTaxable == 'true') {
+                          //  var ItemsExtraChargeAmt = ((TotalAmt * ItemTaxableAmt) / totalTaxableAmt);
+                            $("#ExtraChargetaxble_" + id).val(TotalAmt);
+                            $("#ExpTax_" + id + "_" + i).val(00);
+                            $("#ExtraChargeExp_" + id + "_" + i).val(00);
+                            TotalTaxbleOfWithoutTaxable(i);
+                            TotalTaxbleOfTaxable();
+                        }
+                        else if (IsTaxable == 'false') {
+                            var ItemsExtraChargeAmt = ((TotalAmt * ItemTaxableAmt) / totalTaxableAmt);
+                          //  $("#ExtraChargeExp_" + i).val(ItemsExtraChargeAmt);
+
+                            if ($("#Taxable_" + i).val() ==@((int)Taxability.Taxable) && ($("#GstDateExpied_" + i).val() == 'false' || ($("#GstDateExpied_" + i).val() == 'true' && $("#IsGstDateExpied_" + i).val() == 1))) {
+                                if (TaxIncluded == 0) {
+                                    var TaxOfExtraCahrgeExp = ((ItemsExtraChargeAmt * TaxRate) / 100);
+                                    $("#ExpTax_" + id+ "_" + i).val(TaxOfExtraCahrgeExp);
+                                    $("#ExtraChargeExp_" + id + "_" + i).val(ItemsExtraChargeAmt);
+                                    $("#ExtraChargetaxble_" + id).val(00);
+                                }
+                                else if (TaxIncluded == 1) {
+                                    var TaxOfExtraCahrgeExp = ((ItemsExtraChargeAmt * TaxRate) / (+ 100 + + TaxRate));
+                                    $("#ExpTax_" + i).val((TaxOfExtraCahrgeExp * 100) / 100);
+                                    var tatval =  ItemsExtraChargeAmt - TaxOfExtraCahrgeExp;
+                                    $("#ExtraChargeExp_" + id + "_" + i).val(Math.round(tatval * 100) / 100);
+                                    $("#ExtraChargetaxble_" + id).val(00);
+                                }
+                            }
+                            TotalTaxbleOfWithoutTaxable(i);
+                            TotalTaxbleOfTaxable();
+                        }
+                    }
+                    else if (AddOrLess == @((int)ExtraChargeCategory.Less)) {
+                        if (IsTaxable == 'true') {
+                         //   var ItemsExtraChargeAmt = (Math.round(TotalAmt * ItemTaxableAmt) / totalTaxableAmt);
+                            $("#ExtraChargetaxble_" + id).val(TotalAmt - (2 * TotalAmt));
+                            $("#ExtraChargeExp_" + id + "_" + i).val(00);
+                            $("#ExpTax_" + id + "_" + i).val(00);
+                            TotalTaxbleOfWithoutTaxable(i);
+                            TotalTaxbleOfTaxable();
+                        }
+                        else if (IsTaxable == 'false') {
+                            var ItemsExtraChargeAmt = ((Math.round(TotalAmt * ItemTaxableAmt) / totalTaxableAmt).toFixed(3));
+                          //  $("#ExtraChargeExp_" + i).val(ItemsExtraChargeAmt);
+                            if ($("#Taxable_" + i).val() ==@((int)Taxability.Taxable) && ($("#GstDateExpied_" + i).val() == 'false' || ($("#GstDateExpied_" + i).val() == 'true' && $("#IsGstDateExpied_" + i).val() == 1))) {
+                                if (TaxIncluded == 0) {
+                                    var TaxOfExtraCahrgeExp = ((ItemsExtraChargeAmt * TaxRate) / 100);
+                                    $("#ExpTax_" + id + "_" + i).val((Math.round((TaxOfExtraCahrgeExp - (2 * TaxOfExtraCahrgeExp)) * 100) / 100).toFixed(3));
+                                    $("#ExtraChargeExp_" + id + "_" + i).val(((ItemsExtraChargeAmt - (2 * ItemsExtraChargeAmt)) * 100) / 100);
+                                    $("#ExtraChargetaxble_" + id).val(00);
+                                }
+                                else if (TaxIncluded == 1) {
+                                    var TaxOfExtraCahrgeExp = ((ItemsExtraChargeAmt * TaxRate) / ( + 100 + + TaxRate));
+                                    $("#ExpTax_" + id + "_" + i).val(((TaxOfExtraCahrgeExp - (2 * TaxOfExtraCahrgeExp)) * 100) / 100);
+                                    var tatval =  ItemsExtraChargeAmt - TaxOfExtraCahrgeExp;
+                                    $("#ExtraChargeExp_" + id + "_" + i).val(((tatval - (2 * tatval)) * 100) / 100);
+                                    $("#ExtraChargetaxble_" + id).val(00);
+                                }
+                            }
+                            TotalTaxbleOfWithoutTaxable(i);
+                            TotalTaxbleOfTaxable();
+                        }
+                    }
+
+
+                 //   updatetaxvalue(i)
+                }
+                else {
+                    var ISTaxInclide = $('#IsTaxableSP_' + i).val();
+                    var TaxRate = $("#TaxRates_" + i).val();
+                    var totalItemAmt = $("#TotalAmount_" + i).val();
+                    var ItemTaxableAmt = $("#TaxableValue2_" + i).val();
+
+                    if (AddOrLess == @((int)ExtraChargeCategory.Add)) {
+                        if (IsTaxable == 'true') {
+                           // var ItemsExtraChargeAmt = ((TotalAmt * ItemTaxableAmt) / totalTaxableAmt);
+                            $("#ExtraChargetaxble_" + id).val(TotalAmt);
+                            $("#ExpTax_" + id + "_" + i).val(00);
+                            $("#ExtraChargeExp_" + id + "_" + i).val(00);
+                            TotalTaxbleOfWithoutTaxable(i);
+                            TotalTaxbleOfTaxable();
+                        }
+                        else if (IsTaxable == 'false') {
+                            var ItemsExtraChargeAmt = ((TotalAmt * ItemTaxableAmt) / totalTaxableAmt);
+                          //  $("#ExtraChargeExp_" + i).val(ItemsExtraChargeAmt);
+
+                            if ($("#Taxable_" + i).val() ==@((int)Taxability.Taxable) && ($("#GstDateExpied_" + i).val() == 'false' || ($("#GstDateExpied_" + i).val() == 'true' && $("#IsGstDateExpied_" + i).val() == 1))) {
+                                if (TaxIncluded == 0) {
+                                    var TaxOfExtraCahrgeExp = ((ItemsExtraChargeAmt * TaxRate) / 100);
+                                    $("#ExpTax_" + id + "_"  + i).val(TaxOfExtraCahrgeExp);
+                                    $("#ExtraChargeExp_" + id + "_" + i).val(ItemsExtraChargeAmt);
+                                    $("#ExtraChargetaxble_" + id).val(00);
+                                }
+                                else if (TaxIncluded == 1) {
+                                    var TaxOfExtraCahrgeExp = ((ItemsExtraChargeAmt * TaxRate) / (+ 100 + + TaxRate));
+                                    $("#ExpTax_" + id + "_" + i).val((TaxOfExtraCahrgeExp * 100) / 100);
+                                    var tatval =  ItemsExtraChargeAmt - TaxOfExtraCahrgeExp;
+                                    $("#ExtraChargeExp_" + id + "_" + i).val(Math.round(tatval * 100) / 100);
+                                    $("#ExtraChargetaxble_" + id).val(00);
+                                }
+                            }
+                            TotalTaxbleOfWithoutTaxable(i);
+                            TotalTaxbleOfTaxable();
+                        }
+                    }
+                    else if (AddOrLess == @((int)ExtraChargeCategory.Less)) {
+                        if (IsTaxable == 'true') {
+                         //   var ItemsExtraChargeAmt = ((TotalAmt * ItemTaxableAmt) / totalTaxableAmt);
+                            $("#ExtraChargetaxble_" + id).val(TotalAmt - (TotalAmt * 2));
+                            $("#ExtraChargeExp_" + id + "_" + i).val(00);
+                            $("#ExpTax_" + id + "_" + i).val(00);
+                            TotalTaxbleOfWithoutTaxable(i);
+                            TotalTaxbleOfTaxable();
+                        }
+                        else if (IsTaxable == 'false') {
+                            var ItemsExtraChargeAmt = ((TotalAmt * ItemTaxableAmt) / totalTaxableAmt);
+                          //  $("#ExtraChargeExp_" + i).val(ItemsExtraChargeAmt);
+                            if ($("#Taxable_" + i).val() ==@((int)Taxability.Taxable) && ($("#GstDateExpied_" + i).val() == 'false' || ($("#GstDateExpied_" + i).val() == 'true' && $("#IsGstDateExpied_" + i).val() == 1))) {
+                                if (TaxIncluded == 0) {
+                                    var TaxOfExtraCahrgeExp = ((ItemsExtraChargeAmt * TaxRate) / 100);
+                                    $("#ExpTax_" + id + "_" + i).val(((TaxOfExtraCahrgeExp - (TaxOfExtraCahrgeExp * 2)) * 100) / 100);
+                                    $("#ExtraChargeExp_" + id + "_" + i).val(((ItemsExtraChargeAmt - (ItemsExtraChargeAmt* 2)) * 100) / 100);
+                                    $("#ExtraChargetaxble_" + id).val(00);
+                                }
+                                else if (TaxIncluded == 1) {
+                                    var TaxOfExtraCahrgeExp = ((ItemsExtraChargeAmt * TaxRate) / ( + 100 + + TaxRate));
+                                    $("#ExpTax_" + id + "_" + i).val(((TaxOfExtraCahrgeExp - (TaxOfExtraCahrgeExp * 2)) * 100) / 100);
+                                    var tatval =  ItemsExtraChargeAmt - TaxOfExtraCahrgeExp;
+                                    $("#ExtraChargeExp_" + id + "_" + i).val(((tatval - (tatval * 2)) * 100) / 100);
+                                    $("#ExtraChargetaxble_" + id).val(00);
+                                }
+                            }
+                            TotalTaxbleOfWithoutTaxable(i);
+                            TotalTaxbleOfTaxable();
+                        }
+                       // TotalTaxbleOfWithoutTaxable(i)
+                    }
+
+                }
+            }
+        }
+
+        function TotalTaxbleOfWithoutTaxable(indx) {
+            var totAmt = 0;
+            var totTax = 0;
+            var i = 0;
+            for (i; i <= 3; i++) {
+                var taxbl = $("#ExtraChargeExp_" + i + "_" + indx).val();
+                totAmt = + totAmt + + taxbl;
+                var tax = $("#ExpTax_" + i + "_" + indx).val();
+                totTax = + totTax + + tax;
+            }
+            $("#ExtraChargeExp_" + indx).val(totAmt);
+            $("#ExpTax_" + indx).val(totTax);
+            updatetaxvalue(indx);
+        }
+
+
+        function TotalTaxbleOfTaxable() {
+            var totAmt = 0;
+            var i = 0;
+            for (i; i <= 3; i++) {
+                var taxbl = $("#ExtraChargetaxble_" + i).val();
+                totAmt = + totAmt + + taxbl;
+            }
+            $("#TotExtraChargetaxble").val(totAmt);
+           // GetSubTatal();
+        }
+
+
+        function AddDescAsTemplate() {
+            bootbox.confirm("Are you sure you want to Save this description", function (res) {
+                if (res == true) {
+
+                    var Party = { search: $('#txtOrigin').val(), TrnxType: $('#TransactionType').val() }
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("SaveDescration", "Client")',
+                        dataType: 'JSON',
+                        data: Party,
+                        success: function (data) {
+                            if (data.Result.Status == true)
+                            {
+                                bootbox.alert(data.Result.Message, function () { window.location.reload(); });
+                            }
+                            else { bootbox.alert(data.Result.Message); }
+                        },
+                        error: function (error) {
+                            bootbox.alert("An error occured saving description.")
+                        }
+                    });
+                }
+            });
+            return false;
+        }
+
+
+        function clicked(e) {
+            if (!confirm('Are you sure,You whant to sbmit ?')) {
+                e.preventDefault();
+            }
+        }
+        // Finance Calculations
+        function LoanAmountAdd() {
+            var Loan = $('#AssetCostAsPerBill').val();
+            $('#LoanAmounts').val(Loan);
+        }
+        function EmiMaount() {
+            var ToatalEMI = $('#TotalEMI').val();
+            var TatalAmount = $('#LoanAmounts').val();
+            var EMIAmt = (TatalAmount / ToatalEMI).toFixed(0)
+            $('#EMIAmount').val(EMIAmt);
+        }
+        function AdvanEMIamount() {
+            var NoOfAdvanceEMI = $('#AdvanceEMI').val();
+            var EMIAmt = $('#EMIAmount').val();
+            var ActualAmt = $('#LoanAmounts').val();
+            var AdvanceAmt = (NoOfAdvanceEMI * EMIAmt).toFixed(0);
+            var ActualLoanAmts = (ActualAmt - AdvanceAmt).toFixed(0);
+            $('#AdvanceEMIAmt').val(AdvanceAmt);
+            $('#NetLoanAmount').val(ActualLoanAmts);
+        }
+        function DownPayment() {
+            var FileCharge = $('#FileCharges').val();
+            var BundelAmt = $('#AdvanceEMIAmt').val();
+            $('#DownPayments').val(+ FileCharge + + BundelAmt);
+            ReminingBal();
+        }
+        function DBDAmountCal() {
+            var DbdPers = $('#DbdPercentages').val();
+            var Loan = $('#AssetCostAsPerBill').val();
+            var DbdAmount = ((Loan / 100) * DbdPers).toFixed(0);
+            $('#DbdAmount').val(DbdAmount);
+            var GSTAmount = ((DbdAmount / 100) * 18).toFixed(0);
+            $('#GstAmount').val(GSTAmount);
+            var netDisAmt = $('#NetLoanAmount').val();
+            $('#NetAmount').val(netDisAmt-DbdAmount - GSTAmount);
+        }
+
+        // Remining Amount Calculation
+        function ReminingBal() {
+            var TotalAmt = $('#SubTotal').val();
+            var CashAmt = $('#CashAmt').val();
+            var WalletAmt = $('#WalletAmt').val();
+            var BankAmt = $('#BankAmt').val();
+            var DownPayments = $('#AdvanceEMIAmt').val();
+            $('#Amount_Wallet').text($('#WalletAmt').val());
+            $('#Amount_Finance').text($('#AdvanceEMIAmt').val());
+            $('#Amount_Cash').text($('#CashAmt').val());
+            $('#Amount_Bank').text($('#BankAmt').val());
+            var RecivedAmt = (+ CashAmt + + WalletAmt + + BankAmt + + DownPayments);
+            var DueBal = TotalAmt - RecivedAmt;
+            $('#RemainingAmt').val(DueBal);
+            $('#RecievedAmt').val(RecivedAmt);
+            $('.Remaining').text(DueBal);
+            $('.Recieved').text(RecivedAmt);
+        }
+
+        $(document).ready(function () {
+            GetClientInfo();
+            CashPay();
+            AddNewItem();
+
+            // PaymentType();
+
+        });
+
+
+        $("#txtOrigin").autocomplete({
+            source: function (request, response) {
+                var Party = { search: $('#txtOrigin').val(), TrnxType: $('#TransactionType').val() }
+                $.ajax({
+                    type: "GET",
+                    url: '@Url.Action("DescraptionSearch", "Client")',
+                    dataType: 'JSON',
+                    data: Party,
+                    success: function (data) {
+                        //var parsed = JSON.parse(data);
+                        console.log(data);
+                        response($.map(data, function (item) {
+                            return {
+                                label: item["Descriptions"],
+                                value: item["Descriptions"],
+                            };
+                        }))
+                    }
+                });
+            },
+            minLength: 3,
+            select: function (event, ui) {
+                console.log(ui.item ? "Selected: " + ui.item.label : "Nothing selected, input was " + this.value);
+                $('#txtOrigin').html(ui.item.value);
+                $('#txtOrigin').val(ui.item.value);
+            },
+            //open: function () {
+            //    $(this).removeClass("ui-corner-all").addClass("ui-corner-top");
+            //},
+            //close: function () {
+            //    $(this).removeClass("ui-corner-top").addClass("ui-corner-all");
+            //}
+        });
+            //    .data('ui-autocomplete')._renderItem = function (ul, item)
+            //    {
+            //    return $("<li>")
+            //        .attr("data-value", item.value)
+            //        .append("<div class='airportItemContainer'><p class='airportItemCity'>" + item.citylist.CityName + "</p></div>")
+            //        .appendTo(ul);
+            //};
+
+
+
+            // Add the following code if you want the name of the file appear on select
+        $(".custom-file-input").on("change", function () {
+            var fileName = $(this).val().split("\\").pop();
+            $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+        });
+
+        function PaymentTypeInfo(b) {
+            if (b == "@PaymentType.Cash.ToString()")
+            {
+                $("#CashPart").modal("show");
+                $("#BankModel").modal("hide");
+                $("#WalletModel").modal("hide");
+                $("#FinanceModel").modal("hide");
+            }
+            else if(b == "@PaymentType.Wallet.ToString()")
+            {
+
+                $("#CashPart").modal("hide");
+                $("#BankModel").modal("hide");
+                $("#WalletModel").modal("show");
+                $("#FinanceModel").modal("hide");
+
+            }
+             else if(b == "@PaymentType.Finance.ToString()")
+            {
+
+                $("#CashPart").modal("hide");
+                $("#BankModel").modal("hide");
+                $("#WalletModel").modal("hide");
+                $("#FinanceModel").modal("show");
+
+            }
+             else if(b == "@PaymentType.Bank.ToString()")
+            {
+                $("#CashPart").modal("hide");
+                $("#BankModel").modal("show");
+                $("#WalletModel").modal("hide");
+                $("#FinanceModel").modal("hide");
+
+            }
+        }
+        function Back()
+        {
+            bootbox.confirm("Are you sure you want leave this page", function (res) {
+                if (res == true) {
+                    history.go(-1);
+                }
+            })
+        };
+        function DeleteItem(indx) {
+              var TotItems = $('#NoOfItems').val();
+            if (TotItems > 0) {
+                $('#CurrentdeletedItems').val(indx);
+                var myobj = document.getElementById("TransactionsInfo_" + indx);
+                myobj.remove();
+              //  TotItems--;
+              //  $('#NoOfItems').val(TotItems);
+               // QuantityCunt(indx);
+                var deleteItem = $('#deletedItems').val();
+                var b = $('#CurrentdeletedItems').val();
+              //  var a = deleteItem.toString();
+               // var deleteds = deleteItem.toString().concat( b.toString(),",");
+               var deleteds = deleteItem.toString() + b.toString();
+
+                $('#deletedItems').val(deleteds);
+                GetSubTatal(indx);
+               // CalGSTAmt(indx);
+            }
+        }
+
+        function GetSubTatal(indx) {
+            debugger;
+            var ExtrachargeTaxableVal = $("#TotExtraChargetaxble").val();
+            var NoOfItems = $('#NoOfItems').val();
+            var ExtrachargeTax = $("#ExtraChargeExpensesTax").val();
+            const b = $('#deletedItems').val();
+            const spArr = [...`${b}`].map(Number);
+            console.log(spArr);
+            var Itemids = 0;
+            var SubTot = 0;
+            var totExpensesTax = 0;
+            var TaxableValue = 0;
+            var TaxableValue2 = 0;
+
+            var SGSTTot = 0;
+            var CGSTTot = 0;
+            var IGSTTot = 0;
+
+
+            if (document.querySelector('#SameAs').checked) {
+                var clientstate = $('#StateId1').val();
+            }
+            else {
+                var clientstate = $('#StateId2').val();
+            }
+             var userstate = @UserInfo.StateId;
+
+
+            for (var i = 0; i <= NoOfItems; i++) {
+                if (b != "") {
+                    if (spArr.includes(i) == true) {
+                        continue
+                    }
+                    var SGST = $('#SGSTAmount_' + i).val();
+                    var CGST = $('#CGSTAmount_' + i).val();
+                    var IGST = $('#IGSTAmount_' + i).val();
+                    SGSTTot = + SGSTTot + + SGST;
+                    CGSTTot = + CGSTTot + + CGST;
+                    IGSTTot = + IGSTTot + + IGST;
+
+                    var SubTot1 = $('#TotalAmount_' + i).val();
+                       SubTot = + SubTot + + SubTot1;
+                    var Taxable = $('#TaxableValue_' + i).val();
+                    TaxableValue = + TaxableValue + + Taxable;
+                    var ExpenTax =$('#ExtraChargeExp_' + i).val();
+                    totExpensesTax = + totExpensesTax + + ExpenTax;
+
+                    var Taxable2 = $('#TaxableValue2_' + i).val();
+                    TaxableValue2 = + TaxableValue2 + + Taxable2;
+
+                    Itemids++;
+                }
+                else {
+
+                    var SGST = $('#SGSTAmount_' + i).val();
+                    var CGST = $('#CGSTAmount_' + i).val();
+                    var IGST = $('#IGSTAmount_' + i).val();
+                    SGSTTot = + SGSTTot + + SGST;
+                    CGSTTot = + CGSTTot + + CGST;
+                    IGSTTot = + IGSTTot + + IGST;
+
+                   var SubTot1 = $('#TotalAmount_' + i).val();
+                    SubTot = + SubTot + + SubTot1;
+                    var Taxable = $('#TaxableValue_' + i).val();
+                    TaxableValue = + TaxableValue + + Taxable;
+                    var ExpenTax = $('#ExtraChargeExp_' + i).val();
+                    totExpensesTax = + totExpensesTax + + ExpenTax;
+
+                    var Taxable2 = $('#TaxableValue2_' + i).val();
+                    TaxableValue2 = + TaxableValue2 + + Taxable2;
+
+                    Itemids++;
+                }
+            }
+
+            $('#TaxbleAmt2').val((Math.round(TaxableValue2 * 100) / 100).toFixed(2));
+            $('#TaxbleAmt').val((Math.round((+ TaxableValue + + ExtrachargeTaxableVal) * 100) / 100).toFixed(3));
+
+            if (userstate == clientstate) {
+                var taxable = (Math.round((+ TaxableValue + + ExtrachargeTaxableVal) * 100) / 100).toFixed(3);
+                var Tax = + SGSTTot + + CGSTTot + + ExtrachargeTax;
+
+
+                $('#SGST').val((Math.round((+ SGSTTot + +(ExtrachargeTax / 2)) * 100) / 100).toFixed(2));
+                $('#CGST').val((Math.round((+ CGSTTot + +(ExtrachargeTax / 2)) * 100) / 100).toFixed(2));
+                $('#SubTotal').val((Math.round((+ taxable + + Tax) * 100) / 100).toFixed(2));
+                $('#SubTotal2').val((Math.round((+ taxable + + Tax) * 100) / 100).toFixed(2));
+                $('#RemainingAmt').val((Math.round((+ taxable + + Tax) * 100) / 100).toFixed(2));
+                $('.Remaining').text((Math.round((+ taxable + + Tax) * 100) / 100).toFixed(2));
+
+            } else if (userstate != clientstate) {
+                var taxable = (Math.round((+ TaxableValue + + ExtrachargeTaxableVal) * 100) / 100).toFixed(2);
+
+
+                $('#IGST').val((Math.round((+ IGSTTot + + ExtrachargeTax) * 100) / 100).toFixed(2));
+                $('#SubTotal').val((Math.round((+ taxable + + IGSTTot + + ExtrachargeTax) * 100) / 100).toFixed(2));
+                $('#SubTotal2').val((Math.round((+ taxable + + IGSTTot + + ExtrachargeTax ) * 100) / 100).toFixed(2));
+                $('#RemainingAmt').val((Math.round((+ taxable + + IGSTTot + + ExtrachargeTax ) * 100) / 100).toFixed(2));
+                $('.Remaining').text((Math.round((+ taxable + + IGSTTot + + ExtrachargeTax ) * 100) / 100).toFixed(2));
+            }
+        };
+
+
+
+        $(document).ready(function () {
+            @if (InvoiceNo != null)
+            {
+                <Text>
+
+            var dateTime = new Date();
+            var Year = dateTime.getFullYear();
+            var Month = dateTime.getMonth();
+            var SerialNumber = '@InvoiceNo.StringSerialNo';
+            var Prefixs = '@InvoiceNo.Prefix';
+            if ('@InvoiceNo.IsMultipleShope' == 'True') {
+                $('ShopeName').show();
+            }
+            else {
+
+                $('#ShopeName').hide();
+                $("#ShopeName").prop('disabled', true);
+            }
+
+            if ('@InvoiceNo.AutoManula' == 'True') {
+                if ('@InvoiceNo.IsIncludeYear' == 'True') {
+                    if ('@InvoiceNo.IsIncludeMonth' == 'True') {
+                        var Invoice = Year.toString().concat('-', Month.toString(), '-', '@InvoiceNo.Prefix');
+                        $('#Order_Invoice_No1').val(Invoice);
+                        // $('#Order_Invoice_No').val(@InvoiceNo.StringSerialNo);
+                    }
+                    else {
+                        var Invoice = Year.toString().concat('-', '@InvoiceNo.Prefix');
+                        $('#Order_Invoice_No1').val(Invoice);
+                        // $('#Order_Invoice_No').val(@InvoiceNo.StringSerialNo);
+                    }
+                }
+                else {
+                    if ('@InvoiceNo.IsIncludeMonth' == 'True') {
+                        var Invoice = Month.toString().concat('-', '@InvoiceNo.Prefix');
+                        $('#Order_Invoice_No1').val(Invoice);
+                        //  $('#Order_Invoice_No').val(@InvoiceNo.StringSerialNo);
+                    }
+                    else {
+                        var Invoice = '@InvoiceNo.Prefix'.concat('-');
+                        $('#Order_Invoice_No1').val(Invoice);
+                        // $('#Order_Invoice_No').val(@InvoiceNo.StringSerialNo);
+                    }
+                }
+                GetInvoiceNo();
+            }
+
+            </Text>
+
+            }else
+                {
+                  <Text>
+                     $('#ShopeName').hide();
+            $("#ShopeName").prop('disabled', true);
+              </Text>
+                }
+        });
+
+         function GetClientInfo2() {
+            var Party = { id: $("#PartyId").val() };
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("ClientDetals", "Client")',
+                dataType: 'JSON',
+                data: Party,
+                success: function (data) {
+                    $("#PartyId2").val(data.CompanyName);
+                    $("#CashCustomerName").val(data.CompanyName);
+                }
+            });
+        };
+
+        function GetInvoiceNo() {
+              @if (InvoiceNo != null)
+            {
+                    <Text>
+                if ('@InvoiceNo.AutoManula' == 'True')
+                {
+                    var Party = { TransactionType: $("#TransactionType").val(), ShopName: $("#ShopeName").val() };
+                $.ajax({
+                type: "GET",
+                    url: '@Url.Action("GetInvoiceNo", "Client")',
+                    dataType: 'JSON',
+                    data: Party,
+                    success: function(data) {
+                        if (data != null) {
+                            var invoice = parseInt(data)
+                                        invoice++;
+                            $("#Order_Invoice_No").val(invoice);
+                        }
+                        else {
+                            $('#Order_Invoice_No').val(@InvoiceNo.StringSerialNo);
+                        }
+                    }
+                });
+            };
+            </Text>
+                }
+              };
+
+
+        function CashPay() {
+            if (document.querySelector('#CashMode').checked) {
+                $('#CustmerInfo').hide();
+                $('#CashCustomer').show();
+                $('#CashCustomerName').val("");
+                $("#Address").val("");
+                $("#Mobile").val("");
+                $("#Email").val("");
+                $("#GSTIN").val("");
+                $("#PartyId").prop('disabled', true);
+
+               // $("#CashCustomerName").prop('disabled', false);
+            }
+            else {
+                $('#CashCustomer').hide();
+                $('#CustmerInfo').show();
+                $("#PartyId").prop('disabled', false);
+                GetClientInfo();
+               // $("#CashCustomerName").prop('disabled', true);
+            }
+        }
+        //$('#SameAs').click(function () {
+        function SameAsShipping() {
+            if ( document.querySelector('#SameAs').checked){
+                GetClientInfo2();
+                $("#PartyId2").prop('disabled', true);
+                $("#Mobile2").prop('disabled', true);
+                $("#Email2").prop('disabled', true);
+                $("#Address2").prop('disabled', true);
+                $("#GSTN2").prop('disabled', true);
+                $("#StateId2").prop('disabled', true);
+                $("#CityId2").prop('disabled', true);
+                $("#PartyId2").addClass("bg-light");
+                $("#Email2").addClass("bg-light");
+                $("#Mobile2").addClass("bg-light");
+                $("#Address2").addClass("bg-light");
+                $("#GSTN2")   .addClass("bg-light");
+                $("#StateId2").addClass("bg-light");
+                $("#CityId2").addClass("bg-light");
+                $("#Address2").val($('#Address').val());
+                $("#Mobile2").val($('#Mobile').val());
+                $("#Email2").val($('#Email').val());
+                $("#GSTN2").val($('#GSTIN').val());
+                $("#StateId2").val($('#StateId1').val());
+                $("#CityId2").val($('#CityId1').val());
+            }
+            else
+            {
+                $("#PartyId2").prop('disabled', false);
+                $("#Address2").prop('disabled', false);
+                $("#Mobile2").prop('disabled', false);
+                $("#Email2").prop('disabled', false);
+                $("#GSTN2").prop('disabled', false);
+                $("#StateId2").prop('disabled',false);
+                $("#CityId2").prop('disabled', false);
+                $("#PartyId2").removeClass("bg-light");
+                $("#Address2").removeClass("bg-light");
+                $("#GSTN2").removeClass("bg-light");
+                $("#Mobile2").removeClass("bg-light");
+                $("#Email2").removeClass("bg-light");
+                $("#StateId2").removeClass("bg-light");
+                $("#CityId2").removeClass("bg-light");
+            }
+        }
+
+        function GetClientInfo() {
+            var Party = { id: $("#PartyId").val() };
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("ClientDetals", "Client")',
+                dataType: 'JSON',
+                data: Party,
+                success: function (data) {
+                    $("#Address").val(data.Address);
+                    $("#Mobile").val(data.PhoneNumber);
+                    $("#Email").val(data.Email);
+                    $("#GSTIN").val(data.GSTINNO);
+                    $("#StateId1").val(data.StateId);
+                    $("#CityId1").val(data.CityId);
+                    $("#Address2").val($('#Address').val());
+                    $("#Mobile2").val($('#Mobile').val());
+                    $("#Email2").val($('#Email').val());
+                    $("#GSTN2").val($('#GSTIN').val());
+                    $("#StateId2").val($('#StateId1').val());
+                    $("#CityId2").val($('#CityId1').val());
+                    if (data.StateId ==@UserInfo.StateId) {
+                        $('#HideIGST').hide();
+                        $('#HideCGST').show();
+                        $('#HideSGST').show();
+                    }
+                    else {
+                        $('#HideSGST').hide();
+                        $('#HideCGST').hide();
+                        $('#HideIGST').show();
+                    }
+                }
+            });
+            GetClientInfo2();
+            SameAsShipping();
+        };
+
+
+
+        $(document).ready(function () {
+            $('#TransactionInfoCopy').on('click', function () {
+                var iCnt = $('#NoOfItems').val();
+                iCnt++;
+                $.ajax({
+                    type: "GET",
+                    url: '/client/getTxnItem/' + iCnt,
+                    success: function (resp) {
+                        $('#TransactionsInfo2').append(resp);
+                        $('#NoOfItems').val(iCnt);
+                    }
+                });
+            });
+        });
+        function AddNewItem() {
+            var iCnt=0;
+            $.ajax({
+                type: "GET",
+                url: '/client/getTxnItem/' + iCnt,
+                success: function (resp) {
+                    $('#TransactionsInfo2').append(resp);
+                }
+            });
+           
+        }
+
+
+        $(document).ready(function () {
+            $('.js-example-basic-multiple').select2();
+        });
+
+        function UnirPerRate() {
+            DiscountAmt();
+        }
+
+        function GetCityList() {
+            var state = { StateId: $("#StateId1").val() };
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetCityList", "Client")',
+                dataType: "json",
+                data: state,
+                cache: false,
+                success: function (data) {
+                    var s = '<option value="-1">Please Select a City</option>';
+                    for (var i = 0; i < data.length; i++) {
+                        s += '<option value="' + data[i].Id + '">' + data[i].Name + '</option>';
+                    }
+                    $("#CityId1").html(s);
+
+                }
+            });
+        }
+         function GetCityList2() {
+            var state = { StateId: $("#StateId2").val() };
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetCityList", "Client")',
+                dataType: "json",
+                data: state,
+                cache: false,
+                success: function (data) {
+                    var s = '<option value="-1">Please Select a City</option>';
+                    for (var i = 0; i < data.length; i++) {
+                        s += '<option value="' + data[i].Id + '">' + data[i].Name + '</option>';
+                    }
+                    $("#CityId2").html(s);
+
+                }
+            });
+        }
+        var date = new Date();
+        var maxDate = "31-03-" + (date.getFullYear() + 1);
+        var strs = "01-04-" + date.getFullYear();
+
+        $('#Invoice_Date').datepicker({
+            dateFormat: 'dd-mm-yy',
+            autoclose: true,
+            maxDate: maxDate,
+            minDate: strs
+        });
+        $('#PO_Date').datepicker({
+            dateFormat: 'dd-mm-yy',
+            autoclose: true,
+             maxDate: maxDate,
+            minDate: strs
+        });
+        $('#RefDate').datepicker({
+            dateFormat: 'dd-mm-yy',
+            autoclose: true,
+            maxDate: maxDate,
+            minDate: strs
+        });
+
+        var date = new Date();
+        var str = date.getYear + "-" + date.getMonth + "-" + date.getDay;
+        $("#Invoice_Date").datepicker("setDate", str);
+
+    </script>
+
+}
